@@ -197,6 +197,9 @@ ggplot(data = activity_sleep, aes(x = totalsteps, y = totalminutesasleep)) +
 ```
 ![image](https://github.com/Anushka69124/Bellabeat-Case-Study/assets/130921214/61da9e2a-99c9-473f-87bd-e5bb03931562)
 
+Takeaway Points
+A correlation can be identified between daily steps and calories, while there is no correlation between steps taken and amount of time users sleep per day.The positive correlation observed in the scatterplot is due to the underlying physiological relationship between the two variables. The key reason is that the act of walking requires energy expenditure, which is directly proportional to the number of steps taken. The more steps a person takes, the more muscles are engaged, and the more energy the body needs to fuel that movement.
+
  To find out the days of the week on which the users are more active, and also those on which they sleep more
  ```
 weekdays_steps_sleep <- daily_activity_sleep %>% 
@@ -210,6 +213,39 @@ weekdays_steps_sleep <- weekdays_steps_sleep %>%
   summarize(daily_steps=mean(totalsteps),daily_sleep=mean(totalminutesasleep))
 head(weekdays_steps_sleep)
 ```
+Left to comlplete
+
+ To Find out the specific times when users are most active during the day
+ ```
+hourly_steps <- hourly_steps %>% 
+  separate(date_time,into=c("date","time"),sep=" ") %>% 
+  mutate(date=ymd(date))
+
+hourly_steps <- hourly_steps %>% 
+  distinct() %>% 
+  drop_na()
+head(hourly_steps)
+```
+![image](https://github.com/Anushka69124/Bellabeat-Case-Study/assets/130921214/3ef02c9a-f5af-41d8-8af1-d4af5b2cb6c5)
+
+We construct a bar chart to be able to better visualize this data.
+```
+hourly_steps %>%
+  group_by(time) %>%
+  summarize(average_steps=mean(steptotal)) %>%
+  ggplot()+
+  geom_col(mapping=aes(x=time,y=average_steps,fill=average_steps))+ 
+  labs(title="Hourly steps vs hour of day",x="",y="")+ 
+  scale_fill_gradient(low="pink",high="purple")+
+  theme(axis.text.x=element_text(angle=90))
+```
+![image](https://github.com/Anushka69124/Bellabeat-Case-Study/assets/130921214/33ccef70-143d-47ce-9a91-ec934eb6b9fb)
+
+Takeaway Points
+As evident, the users are the most active from 8:00 a.m. to 7:00 p.m., with an increase in the number of steps walked around lunchtime (12:00 p.m. to 2:00 p.m.) and in the evening (5:00 p.m. to 7:00 p.m.), peaking at 6:00 p.m.
+
+
+
 
 
 
