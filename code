@@ -86,7 +86,7 @@ daily_activity <- rename_with(daily_activity,tolower)
 daily_sleep <- rename_with(daily_sleep,tolower)
 hourly_steps <- rename_with(hourly_steps,tolower)
 ```
-We clean the date-time format for *daily_activity* and *daily_sleep*, for consistency in columns while merging these two data frames.
+We clean the date-time format for daily_activity and daily_sleep,hourly_steps for consistency in columns while merging these two data frames.
 ```{r}
 library(lubridate)
 
@@ -99,5 +99,58 @@ daily_sleep <- daily_sleep %>%
   rename(date = sleepday) %>% 
   mutate(date = as_date(date,format="%m/%d/%Y %I:%M:%S %p",tz=Sys.timezone()))
 head(daily_sleep)
+
+hourly_steps <- hourly_steps %>% 
+  rename(date_time = activityhour) %>% 
+  mutate(date_time = as.POSIXct(date_time,format="%m/%d/%Y %I:%M:%S %p",tz=Sys.timezone()))
+head(hourly_steps)
 ```
+we merge the two data frames daily_activity and daily_sleep, using id and date as primary keys.
+```{r}
+daily_activity_sleep <- merge(daily_activity, daily_sleep, by=c("id","date"))
+head(daily_activity_sleep)
+```
+visualization phase of this case study
+#A summary for daily data
+library(dplyr)
+
+activity_sleep <- inner_join(daily_activity, daily_sleep, by = "id")
+activity_sleep_summary <- activity_sleep %>%
+  select(totalsteps, calories,
+         veryactiveminutes, fairlyactiveminutes, lightlyactiveminutes, sedentaryminutes,
+         totalsleeprecords, totalminutesasleep, totaltimeinbed) %>%
+  drop_na() %>%
+  summary()
+print(activity_sleep_summary)
+We want to find out if there are correlations between these variables:
+
+Daily Steps vs Calories
+Daily Steps vs.Daily Sleep
+```{r}
+library(ggplot2) 
+library(dplyr)   
+activity_sleep <- activity_sleep %>%
+  select(totalsteps, calories) %>%
+  drop_na()  
+activity_sleep$totalsteps <- as.numeric(activity_sleep$totalsteps)
+activity_sleep$calories <- as.numeric(activity_sleep$calories)
+
+ggplot(activity_sleep, aes(x = totalsteps, y = calories)) +
+  geom_jitter(alpha = 0.5) + 
+  geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"), size = 0.6) +  
+  geom_text(aes(x = 20000, y = 2300, label = paste0("Pearson's r = ", round(cor(totalsteps, calories), 2))),
+            hjust = -0.1, vjust = 1, size = 4) +  
+  labs(title = "Daily Steps vs. Calories", x = "Daily Steps", y = "Calories") + 
+  theme_minimal()  
+```
+```{r}
+activity_sleep <- activity_sleep[complete.cases(activity_sleep[, c("totalsteps", "totalminutesasleep")]), ]
+ggplot(data = activity_sleep, aes(x = totalsteps, y = totalminutesasleep)) +
+  geom_point(position = "jitter", alpha = 0.5, size = 2) + 
+  geom_smooth(method = "auto", color = "blue", size = 0.6) +  
+  labs(title = "Daily steps vs. sleep", x = "Daily steps", y = "Minutes asleep") +
+  theme_minimal()
+```
+
+
 
