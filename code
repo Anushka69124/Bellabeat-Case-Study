@@ -1,0 +1,103 @@
+---
+## title: "R Notebook - Emily Liang - Bellabeat Case Study"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+   Installing relevant packages
+```{r}
+install.packages("tidyverse")
+install.packages("here")
+install.packages("skimr")
+install.packages("janitor")
+install.packages("lubridate")
+
+library(tidyverse)
+library(here)
+library(skimr)
+library(janitor)
+library(lubridate)
+```
+
+Step 2 : Prepare the data and preview the  data frame.
+  ```{r}
+daily_activity <- read.csv("/kaggle/input/fitbit/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/dailyActivity_merged.csv")
+
+daily_sleep <- read.csv("/kaggle/input/fitbit/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/sleepDay_merged.csv")
+
+hourly_steps <- read.csv("/kaggle/input/fitbit/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/hourlySteps_merged.csv")
+
+head(daily_activity)
+str(daily_activity)
+
+head(daily_sleep)
+str(daily_sleep)
+
+head(hourly_steps)
+str(hourly_steps)
+
+```
+Step 3 : Cleaning the data
+First of all, we determine the number of unique users from each data frame.
+  ```{r}
+n_unique(daily_activity$Id)
+n_unique(daily_sleep$Id)
+n_unique(hourly_steps$Id)
+```
+ we check for any duplicates, if present
+```{r}
+  sum(duplicated(daily_activity))
+sum(duplicated(daily_sleep))
+sum(duplicated(hourly_steps))
+```
+remove duplicates and NA values from each data frame
+```{r}
+  install.packages("dplyr")
+library(dplyr)
+install.packages("tidyr")
+library(tidyr)
+
+daily_activity <- daily_activity %>% 
+  distinct() %>% 
+  drop_na()
+head(daily_activity)
+
+daily_sleep <- daily_sleep %>% 
+  distinct() %>% 
+  drop_na()
+head(daily_sleep)
+
+hourly_steps <- hourly_steps %>% 
+  distinct() %>% 
+  drop_na()
+head(hourly_steps)
+```
+change the case of each column name into lowercase
+```{r}
+library(janitor)
+
+clean_names(daily_activity)
+clean_names(daily_sleep)
+clean_names(hourly_steps)
+
+daily_activity <- rename_with(daily_activity,tolower)
+daily_sleep <- rename_with(daily_sleep,tolower)
+hourly_steps <- rename_with(hourly_steps,tolower)
+```
+We clean the date-time format for *daily_activity* and *daily_sleep*, for consistency in columns while merging these two data frames.
+```{r}
+library(lubridate)
+
+daily_activity <- daily_activity %>% 
+  rename(date = activitydate) %>% 
+  mutate(date = as_date(date,format="%m/%d/%Y"))
+head(daily_activity)
+
+daily_sleep <- daily_sleep %>% 
+  rename(date = sleepday) %>% 
+  mutate(date = as_date(date,format="%m/%d/%Y %I:%M:%S %p",tz=Sys.timezone()))
+head(daily_sleep)
+```
+
