@@ -1,12 +1,12 @@
 ---
-## title: "R Notebook - Emily Liang - Bellabeat Case Study"
+#title: "R Notebook - Anushka - Bellabeat Case Study"
 output:
   html_document:
     df_print: paged
   html_notebook: default
   pdf_document: default
 ---
-   Installing relevant packages
+ Installing relevant packages
 ```{r}
 install.packages("tidyverse")
 install.packages("here")
@@ -21,7 +21,7 @@ library(janitor)
 library(lubridate)
 ```
 
-Step 2 : Prepare the data and preview the  data frame.
+#Step 2 : Prepare the data and preview the  data frame.
   ```{r}
 daily_activity <- read.csv("/kaggle/input/fitbit/mturkfitbit_export_4.12.16-5.12.16/Fitabase Data 4.12.16-5.12.16/dailyActivity_merged.csv")
 
@@ -39,20 +39,23 @@ head(hourly_steps)
 str(hourly_steps)
 
 ```
-Step 3 : Cleaning the data
+#Step 3 : Cleaning the data
 First of all, we determine the number of unique users from each data frame.
   ```{r}
 n_unique(daily_activity$Id)
 n_unique(daily_sleep$Id)
 n_unique(hourly_steps$Id)
 ```
- we check for any duplicates, if present
+
+
+#we check for any duplicates, if present
 ```{r}
   sum(duplicated(daily_activity))
 sum(duplicated(daily_sleep))
 sum(duplicated(hourly_steps))
 ```
-remove duplicates and NA values from each data frame
+
+#remove duplicates and NA values from each data frame
 ```{r}
   install.packages("dplyr")
 library(dplyr)
@@ -74,7 +77,8 @@ hourly_steps <- hourly_steps %>%
   drop_na()
 head(hourly_steps)
 ```
-change the case of each column name into lowercase
+
+#change the case of each column name into lowercase
 ```{r}
 library(janitor)
 
@@ -86,7 +90,8 @@ daily_activity <- rename_with(daily_activity,tolower)
 daily_sleep <- rename_with(daily_sleep,tolower)
 hourly_steps <- rename_with(hourly_steps,tolower)
 ```
-We clean the date-time format for daily_activity and daily_sleep,hourly_steps for consistency in columns while merging these two data frames.
+
+#We clean the date-time format for daily_activity and daily_sleep,hourly_steps for consistency in columns while merging these two data frames.
 ```{r}
 library(lubridate)
 
@@ -105,13 +110,15 @@ hourly_steps <- hourly_steps %>%
   mutate(date_time = as.POSIXct(date_time,format="%m/%d/%Y %I:%M:%S %p",tz=Sys.timezone()))
 head(hourly_steps)
 ```
-we merge the two data frames daily_activity and daily_sleep, using id and date as primary keys.
+
+#we merge the two data frames daily_activity and daily_sleep, using id and date as primary keys.
 ```{r}
 daily_activity_sleep <- merge(daily_activity, daily_sleep, by=c("id","date"))
 head(daily_activity_sleep)
 ```
-visualization phase of this case study
+#visualization phase of this case study
 #A summary for daily data
+```{r}
 library(dplyr)
 
 activity_sleep <- inner_join(daily_activity, daily_sleep, by = "id")
@@ -122,10 +129,13 @@ activity_sleep_summary <- activity_sleep %>%
   drop_na() %>%
   summary()
 print(activity_sleep_summary)
-We want to find out if there are correlations between these variables:
+```
 
-Daily Steps vs Calories
-Daily Steps vs.Daily Sleep
+#We want to find out if there are correlations between these variables:
+
+#Daily Steps vs Calories
+#Daily Steps vs.Daily Sleep
+
 ```{r}
 library(ggplot2) 
 library(dplyr)   
@@ -151,6 +161,7 @@ ggplot(data = activity_sleep, aes(x = totalsteps, y = totalminutesasleep)) +
   labs(title = "Daily steps vs. sleep", x = "Daily steps", y = "Minutes asleep") +
   theme_minimal()
 ```
+
 
 
 
