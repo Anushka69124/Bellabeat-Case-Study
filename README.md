@@ -202,18 +202,37 @@ A correlation can be identified between daily steps and calories, while there is
 
  To find out the days of the week on which the users are more active, and also those on which they sleep more
  ```
-weekdays_steps_sleep <- daily_activity_sleep %>% 
-  mutate(day_of_week=weekdays(date))
+weekday_steps_sleep <- daily_activity_sleep %>%
+  mutate(weekday = weekdays(date))
 
-weekdays_steps_sleep$day_of_week <- ordered(weekdays_steps_sleep$day_of_week,
-levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
+weekday_steps_sleep$weekday <-ordered(weekday_steps_sleep$weekday, levels=c("Monday", "Tuesday", "Wednesday", "Thursday",
+"Friday", "Saturday", "Sunday"))
 
-weekdays_steps_sleep <- weekdays_steps_sleep %>% 
-  group_by(day_of_week) %>% 
-  summarize(daily_steps=mean(totalsteps),daily_sleep=mean(totalminutesasleep))
-head(weekdays_steps_sleep)
+ weekday_steps_sleep <-weekday_steps_sleep%>%
+  group_by(weekday) %>%
+  summarize (daily_steps = mean(totalsteps), daily_sleep = mean(totalminutesasleep))
+
 ```
-Left to comlplete
+```{r}
+ ggplot(weekday_steps_sleep) +
+     geom_col(mapping= aes(weekday,daily_steps),fill = "#006699") +
+     geom_hline(yintercept=7500, color="#ffffff")+
+     labs(title="Daily steps per weekday", x="", y="")+
+     theme(axis.text.x=element_text(angle =45, vjust=0.5, hjust=1))
+```
+![image](https://github.com/Anushka69124/Bellabeat-Case-Study/assets/130921214/990101f6-9325-4fbe-9597-12cc773f8bbe)
+
+```
+ggplot(weekday_steps_sleep) +
+     geom_col(mapping = aes(weekday, daily_sleep),fill = "#008b8b") +
+     geom_hline(yintercept = 480, color="#800000") +
+     labs(title="Minutes asleep per weekday", x="",y="") +
+     theme(axis.text.x=element_text(angle=45,vjust=0.5,hjust=1))
+```
+![image](https://github.com/Anushka69124/Bellabeat-Case-Study/assets/130921214/a310829b-c6bd-4d4e-9744-a145d7819292)
+Takeaway Points
+From above graphs, we found that users were not sleeping the recommneded amount of minutes/hours throughout the weekdays.
+
 
  To Find out the specific times when users are most active during the day
  ```
@@ -244,7 +263,78 @@ hourly_steps %>%
 Takeaway Points
 As evident, the users are the most active from 8:00 a.m. to 7:00 p.m., with an increase in the number of steps walked around lunchtime (12:00 p.m. to 2:00 p.m.) and in the evening (5:00 p.m. to 7:00 p.m.), peaking at 6:00 p.m.
 
+Finally 
+usertype distribution of data (mine is still left)
+```{r}
+#classify user_type by daily average steps
+user_type <- daily_average %>%
+mutate(user_type=case_when(
+mean_totalsteps <5000 ~"sedentary",
+mean_totalsteps >=5000 & mean_totalsteps <7499 ~"lightly active",
+mean_totalsteps >=7500 & mean_totalsteps <9999 ~"fairly active",
+mean_totalsteps >=10000 ~ "very active"))
 
+head(user_type)
+```
+![image](https://github.com/Anushka69124/Bellabeat-Case-Study/assets/130921214/1d046abb-50f9-44e5-961b-56dfa0db2613)
+```{r}
+#user_type percentage
+user_type_percent <- user_type %>%
+  group_by(user_type) %>%
+  summarise(total = n()) %>%
+  mutate(totals = sum(total)) %>%
+  group_by(user_type) %>%
+  summarise(total_percent = total / totals) %>%
+  mutate(labels = scales::percent(total_percent))
+
+user_type_percent$user_type <- factor(user_type_percent$user_type, 
+                                      levels = c("very active", "fairly active", "lightly active", "sedentary"))
+```
+
+```{r}
+#user_type distribution based on daily_step
+user_type_percent %>%
+  ggplot(aes(x="",y=total_percent, fill=user_type)) +
+  geom_bar(stat = "identity", width = 1)+
+  coord_polar("y", start=0)+
+  theme_minimal()+
+  theme(axis.title.x= element_blank(),
+        axis.title.y = element_blank(),
+        panel.border = element_blank(), 
+        panel.grid = element_blank(), 
+        axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
+        plot.title = element_text(hjust = 0.5, size=14, face = "bold")) +
+scale_fill_manual(values = c("#f3fca9","#a5fbb0", "#8bb1f7", "#ff8080")) +
+  geom_text(aes(label = labels),
+            position = position_stack(vjust = 0.5))+
+  labs(title="User type distribution based on daily steps")
+
+```
+![image](https://github.com/Anushka69124/Bellabeat-Case-Study/assets/130921214/cfad6d2d-d4f2-4e54-a132-806aa629cf1b)
+
+User distribution based on daily steps
+
+21% of users are very active - walks more than 10,000 steps per day
+38% of users are fairly active-walks more than 7500 to 9999 steps per day
+21% of users are lightly active - walks between 5000 to 7500 steps per day
+21% of users are sendary - walk less than 5000 steps per day
+
+#  The "Act" Phase
+
+##  Recommendations
+
+1)Since we only get the recommended amount of sleep on two days of the week, the smart device should analyze step patterns, provide insights on sleep quality, and help improve sleep consistency throughout the week.
+
+2)The app should send alerts to encourage activity if users remain seated or inactive for too long. It should also allow users to set personalized activity goals with the ability to adjust them based on their fitness levels and progress .
+
+3)Users are classified into four categories based on their daily steps. 58% are fairly active or very active, walking over 7500 steps daily except on Sundays. There's a positive correlation between steps and calories burned. Adding a notification system in the Bellabeat App to encourage users to take at least 7500 steps daily and track their progress would be very beneficial.
+
+4)The app could enhance social networking features by including in-app chats and team goal setting among users to promote exercise habits. Additionally, users could share their progress, participate in challenges, and motivate each other to achieve their fitness goals, fostering a supportive and interactive community.
+
+5)The smartwatch should offer smart features like battery-saving mode, phone call reception, water resistance, and long-lasting battery power, as many users wear it for nearly half the day.
+
+6)The Bellabeat App should include features like daily step notifications to encourage users to walk at least 7500 steps and reminders to get 7-8 hours of sleep. Additionally, providing daily wellness insights would be very beneficial.
 
 
 
